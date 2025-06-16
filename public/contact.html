@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact Me</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Contact Me</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/projects">Projects</a>
+      <a href="/blog">Blog</a>
+    </nav>
+  </header>
+  <main>
+    <form method="POST" action="/contact">
+      <label>Name: <input type="text" name="name" required></label><br>
+      <label>Message: <textarea name="message" required></textarea></label><br>
+      <button type="submit">Send</button>
+    </form>
+  </main>
+  <footer>
+    <p>&copy; 2025 My Portfolio</p>
+  </footer>
+</body>
+</html>
