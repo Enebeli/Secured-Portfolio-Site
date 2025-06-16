@@ -6,7 +6,6 @@ How to Run the App Locally---
 
 Clone the Repository
 git clone https://github.com/your-username/portfolio-app.git
-cd portfolio-app
 
 Install Dependencies
 npm install
