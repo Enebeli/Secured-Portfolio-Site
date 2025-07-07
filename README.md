@@ -20,86 +20,17 @@ https://localhost:3000
 
 Note: If you're using a self-signed certificate, accept your browser’s security warning.
 
-SSL Certificate ---
+ Part A: Reflection – Authentication Method
+For authentication, I implemented both local login using email and password and third-party SSO with Google OAuth 2.0. I chose local auth to give users full control over their credentials, and Google SSO to provide a fast, convenient login experience using accounts people already trust. I hashed passwords using bcrypt before storing them in the database to prevent raw password exposure. I stored access tokens in HttpOnly cookies to reduce the risk of XSS attacks. Google was selected for its strong documentation, security features, and user familiarity.
 
-For local development, I used OpenSSL to generate a self-signed SSL certificate. This allows encrypted HTTPS communication during testing.
+ Part B: Reflection – Access Control System
+I implemented a Role-Based Access Control (RBAC) system with two roles: “User” and “Admin.” These roles are stored in the database and included in JWT payloads. Middleware checks both the token and the user’s role to restrict access to protected routes like /admin, /profile, and /dashboard. The biggest challenge was keeping the system both secure and simple — I wanted to ensure fine-grained control without overcomplicating the structure. I opted for two core roles to balance usability and scalability.
 
-Why OpenSSL?----
+Part C: Reflection – Token Management Strategy
+I used JSON Web Tokens (JWT) for session management. To balance security and usability, I issued short-lived access tokens (15 minutes) and longer-lived refresh tokens (7 days). Tokens are stored in secure, HttpOnly, SameSite=Strict cookies to reduce exposure to XSS and CSRF attacks. I created a /refresh endpoint that issues new access tokens using a valid refresh token, allowing users to stay logged in without frequent re-authentication. This approach helped improve both the user experience and overall session security.
 
--Quick to set up
+Part D: Reflection – Security Risk Mitigation
+I addressed multiple session-related security risks. Cookies were secured with HttpOnly, Secure, and SameSite=Strict flags to prevent theft. I added CSRF protection using csurf middleware and rate limiting to reduce brute-force login attacks. I also protected against account enumeration by returning generic error messages for invalid login attempts. Session fixation is prevented through secure cookie management and short-lived JWTs. These measures strengthened the app’s overall security posture while keeping user experience smooth and intuitive.
 
--Ideal for local environments
-
--No domain or external validation required
-
-SSL Files used:---
-
-ssl/cert.pem
-
-ssl/key.pem
-
-These files are used in the HTTPS server configuration to serve the application securely.
-
-Secure HTTP Headers with Helmet
-
-The app uses Helmet middleware to set important HTTP security headers including:
-
-Content-Security-Policy (helps prevent cross-site scripting by controlling resource loading)
-
-X-Frame-Options (prevents clickjacking)
-
-X-Content-Type-Options (disables MIME sniffing)
-
-Strict-Transport-Security (enforces HTTPS for future requests)
-
-Helmet is configured globally in the server.js file.
-
-Caching Strategy---
-
-To balance performance and security, caching is applied selectively using Cache-Control headers.
-
-Routes and caching policies:---
-
-/ (Homepage): no-store (no caching)
-
-/projects (Project showcase): cache for 5 minutes with stale-while-revalidate
-
-/blog (Developer blog): cache for 5 minutes with stale-while-revalidate
-
-/contact (Contact form): no-store (no caching)
-
-Sensitive data, such as user input forms, are never cached.
-
-Routes Implemented---
-
-/ – Homepage
-
-/projects – Lists developer projects
-
-/blog – Blog and tutorials section
-
-/contact – Contact form
-
-Lessons Learned---
-
-OpenSSL makes local HTTPS setup straightforward, but for production use a trusted certificate authority like Let’s Encrypt.
-
-Content Security Policy headers need careful configuration — if too strict, they can block needed scripts or styles.
-
-Caching improves app speed but must never cache sensitive user data.
-
-Designing modular routes and security policies early helps with future app scalability.
-
-What’s Next (Phase 2)---
-
-Implement user registration and secure login
-
-Add role-based access control (e.g. admin features)
-
-Use bcrypt for password hashing
-
-Protect private routes with session or token-based authentication
-
-Project Summary---
 
 Built as part of a multi-phased security project focusing on real-world practices like HTTPS, secure headers, and caching strategies.
