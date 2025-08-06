@@ -1,35 +1,64 @@
-# Secured-Portfolio-Site
-Developer Portfolio & Project Showcase — Secure Web Application---
-This is a secure, HTTPS-enabled web application that showcases a developer’s portfolio, skills, and projects. It’s designed with a security-first architecture, proper caching strategies, and modern web development best practices.
+SECURE PORTFOLIO WEB APPLICATION
 
-How to Run the App Locally---
+A secure web portfolio app featuring user authentication, encrypted data storage, and protected user profiles.
 
-Clone the Repository
-git clone https://github.com/your-username/portfolio-app.git
+## Getting Started
 
-Install Dependencies
+### Clone the repo
+git clone https://github.com/Enebeli/Secured-Portfolio-Site
+cd Secured-Portfolio-Site
+
+### Install dependencies
 npm install
 
-Start the HTTPS Server
-node server.js
+### Create a .env file in the root with the following:
+JWT_SECRET=your_jwt_secret  
+REFRESH_SECRET=your_refresh_secret  
+SESSION_SECRET=your_session_secret  
+MONGO_URI=your_mongo_connection_string
 
-Visit the App
-Open your browser and go to:
-https://localhost:3000
+### Run the server
+npm run dev
 
-Note: If you're using a self-signed certificate, accept your browser’s security warning.
+Visit: https://localhost:3000
 
- Part A: Reflection – Authentication Method
-For authentication, I implemented both local login using email and password and third-party SSO with Google OAuth 2.0. I chose local auth to give users full control over their credentials, and Google SSO to provide a fast, convenient login experience using accounts people already trust. I hashed passwords using bcrypt before storing them in the database to prevent raw password exposure. I stored access tokens in HttpOnly cookies to reduce the risk of XSS attacks. Google was selected for its strong documentation, security features, and user familiarity.
+## Security Features
 
- Part B: Reflection – Access Control System
-I implemented a Role-Based Access Control (RBAC) system with two roles: “User” and “Admin.” These roles are stored in the database and included in JWT payloads. Middleware checks both the token and the user’s role to restrict access to protected routes like /admin, /profile, and /dashboard. The biggest challenge was keeping the system both secure and simple — I wanted to ensure fine-grained control without overcomplicating the structure. I opted for two core roles to balance usability and scalability.
+### Input Validation
+All form inputs are validated using express-validator to ensure safe and proper user input. Rules include:
+- Valid email formats
+- Alphanumeric and length checks for names
+- Length limits on bio
+- Custom error handling
 
-Part C: Reflection – Token Management Strategy
-I used JSON Web Tokens (JWT) for session management. To balance security and usability, I issued short-lived access tokens (15 minutes) and longer-lived refresh tokens (7 days). Tokens are stored in secure, HttpOnly, SameSite=Strict cookies to reduce exposure to XSS and CSRF attacks. I created a /refresh endpoint that issues new access tokens using a valid refresh token, allowing users to stay logged in without frequent re-authentication. This approach helped improve both the user experience and overall session security.
+### Output Encoding
+User-generated content such as bio and email are escaped and sanitized before rendering to prevent cross-site scripting (XSS). The `.escape()` method is used during validation and EJS templates use auto-escaping features.
 
-Part D: Reflection – Security Risk Mitigation
-I addressed multiple session-related security risks. Cookies were secured with HttpOnly, Secure, and SameSite=Strict flags to prevent theft. I added CSRF protection using csurf middleware and rate limiting to reduce brute-force login attacks. I also protected against account enumeration by returning generic error messages for invalid login attempts. Session fixation is prevented through secure cookie management and short-lived JWTs. These measures strengthened the app’s overall security posture while keeping user experience smooth and intuitive.
+### Encryption
+Sensitive fields such as email and bio are encrypted before saving to the database using Node’s built-in crypto module. Data is decrypted only when needed for display in the UI.
 
+### Dependency Management
+Dependencies are managed via npm. Vulnerabilities are checked using:
+npm audit
 
-Built as part of a multi-phased security project focusing on real-world practices like HTTPS, secure headers, and caching strategies.
+To auto-fix minor issues:
+npm audit fix
+
+To force fix all (including breaking changes):
+npm audit fix --force
+
+## Lessons Learned
+- CSRF protection required properly placing cookie-parser before csurf middleware and making sure all forms include a valid token.
+- Debugging database connection errors helped reinforce understanding of MongoDB connection strings and user authentication setup.
+- Dealing with session handling and JWT token-based auth was challenging, especially in managing token expiration and refresh flows.
+- Ensuring encryption and output encoding were applied correctly required careful testing and inspection of template rendering.
+
+## Reflection
+The most challenging vulnerability was Cross-Site Scripting (XSS), as it required both input validation and output encoding to be airtight. Also, getting CSRF protection to work with cookies and forms took debugging. In the future, tools like OWASP ZAP or Burp Suite could help automate vulnerability testing and improve the security posture of the app.
+
+## Demo Video Checklist
+- Demonstrate local login or SSO login
+- Show successful profile viewing and updating
+- Highlight secure storage of encrypted fields like email and bio
+- Demonstrate session persistence and CSRF protection (e.g. failed request with missing token)
+

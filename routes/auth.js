@@ -8,6 +8,13 @@ const User = require('../models/User');
 const JWT_SECRET = process.env.JWT_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_SECRET;
 
+router.get('/register', (req, res) => {
+  res.render('register', { csrfToken: req.csrfToken() });
+});
+
+router.get('/login', (req, res) => {
+  res.render('login', { csrfToken: req.csrfToken() });
+});
 
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -22,6 +29,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ error: 'Registration failed' });
   }
 });

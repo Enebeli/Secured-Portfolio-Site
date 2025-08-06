@@ -9,23 +9,62 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
-require('./config/Passport'); 
-const express = require('express');
-const router = express.Router();
-const verifyToken = require('../middleware/verifyToken');
-const checkRole = require('../middleware/checkRole');
 const csrf = require('csurf');
 const rateLimit = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
+require('./config/Passport'); 
+const router = express.Router();
+const verifyToken = require('./middleware/verifyToken');
+const checkRole = require('./middleware/checkRole');
+const dashboardRoutes = require('./routes/dashboard');
+const profileRoutes = require('./routes/profile');
+const authRoutes = require('./routes/auth');
+
+
+const app = express();
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 
 app.use(cookieParser()); // Must come before csrf
-app.use(csrf({ cookie: true })); // CSRF Protection
 
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+})); 
 
-// Accessible by any logged-in user
-router.get('/profile', verifyToken, (req, res) => {
-  res.json({ message: `Welcome to your profile, user ${req.user.id}` });
+app.use(express.urlencoded({ extended: true })); // For parsing form data
+
+app.use(csrf({ cookie: true })); // Now: Enable CSRF protection
+
+app.use(express.json()); // Optional: for parsing JSON if needed
+
+app.use(helmet());
+
+app.use('/dashboard', dashboardRoutes);
+app.use('/profile', profileRoutes);
+app.use('/auth', authRoutes);
+
+app.get('/auth-test', (req, res) => {
+  res.send(`
+    <form action="/auth/register" method="POST">
+      <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+      <input type="text" name="username" placeholder="Username" required><br>
+      <input type="email" name="email" placeholder="Email" required><br>
+      <input type="password" name="password" placeholder="Password" required><br>
+      <button type="submit">Register</button>
+    </form>
+
+    <form action="/auth/login" method="POST">
+      <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+      <input type="email" name="email" placeholder="Email" required><br>
+      <input type="password" name="password" placeholder="Password" required><br>
+      <button type="submit">Login</button>
+    </form>
+  `);
 });
+
 
 // Admin only
 router.get('/admin', verifyToken, checkRole('Admin'), (req, res) => {
@@ -45,8 +84,6 @@ router.get('/dashboard', verifyToken, (req, res) => {
 module.exports = router;
 
 
-const app = express();
-
 
 const options = {
   key: fs.readFileSync('./ssl/server.key'),
@@ -54,7 +91,7 @@ const options = {
 };
 
 
-mongoose.connect('mongodb://localhost:27017/secure-app', {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('MongoDB connected'))
@@ -81,12 +118,12 @@ app.use(express.static('public'));
 const projectRoutes = require('./routes/projects');
 const blogRoutes = require('./routes/blog');
 const contactRoutes = require('./routes/contact');
-const authRoutes = require('./routes/auth'); 
+
 
 app.use('/projects', projectRoutes);
 app.use('/blog', blogRoutes);
 app.use('/contact', contactRoutes);
-app.use('/auth', authRoutes); 
+ 
 
 
 app.get('/', (req, res) => {
